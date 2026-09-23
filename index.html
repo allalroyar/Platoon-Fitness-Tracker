@@ -135,7 +135,7 @@ nav button.on{background:var(--card2);color:var(--accent)}
 <div class="wrap" id="wrap">
   <div class="emblem" role="img" aria-label="סמל המחלקה"></div>
   <div class="proto" id="syncMsg">מתחבר...</div>
-  <button class="small permlink" data-a="permopen" type="button">ניהול הרשאות</button>
+  <button class="small permlink" data-a="permopen" type="button" id="permLinkBtn" style="display:none">ניהול הרשאות</button>
   <main id="app"></main>
 </div>
 <nav id="navbar"><div class="in" id="nav"></div></nav>
@@ -215,7 +215,9 @@ function fsFields(obj){
 }
 function markSync(ok){
   var el=document.getElementById('syncMsg');
-  if(el) el.textContent=ok?'':'בעיית חיבור - שינויים אחרונים אולי לא נשמרו. בדוק את החיבור לאינטרנט.';
+  if(!el) return;
+  if(ok){el.style.display='none';el.textContent=''}
+  else{el.style.display='';el.textContent='בעיית חיבור - שינויים אחרונים אולי לא נשמרו. בדוק את החיבור לאינטרנט.'}
 }
 function fsList(col){
   return ensureAuth().then(function(){
@@ -233,13 +235,19 @@ function fsSet(col,id,obj){
       method:'PATCH',headers:{'Authorization':'Bearer '+auth.idToken,'Content-Type':'application/json'},
       body:JSON.stringify({fields:fsFields(obj)})
     });
-  }).then(function(r){if(!r.ok)throw new Error('set-failed');markSync(true);return r})
+  }).then(function(r){
+      if(!r.ok) return r.text().then(function(t){throw new Error('set-failed ['+r.status+']: '+t)});
+      markSync(true);return r;
+    })
     .catch(function(e){markSync(false);throw e});
 }
 function fsDel(col,id){
   return ensureAuth().then(function(){
     return fetch(FS_BASE+col+'/'+encodeURIComponent(id),{method:'DELETE',headers:{'Authorization':'Bearer '+auth.idToken}});
-  }).then(function(r){if(!r.ok)throw new Error('del-failed');markSync(true);return r})
+  }).then(function(r){
+      if(!r.ok) return r.text().then(function(t){throw new Error('del-failed ['+r.status+']: '+t)});
+      markSync(true);return r;
+    })
     .catch(function(e){markSync(false);throw e});
 }
 
@@ -275,7 +283,7 @@ function gradeKshag(pull,dips,sprintSec,runSec){
 function kshagDateStr(day,month,year){return day+' ב'+HEBREW_MONTHS[month]+' '+year}
 var KLVL_RANK={excellent:3,pass:2,fail:1};
 
-var view={role:'soldier',tid:null,coachType:'strength',edit:null,delId:null,sq:null,nm:'',err:'',personal:false,pTab:'history',wheelVals:{},kshagOpen:true,gDelId:null,kDelId:null,cmdKshag:false,kshagSort:'latest',draft:null,permAdmin:false};
+var view={role:'soldier',tid:null,coachType:'strength',edit:null,delId:null,sq:null,nm:'',err:'',personal:false,pTab:'history',wheelVals:{},kshagOpen:true,gDelId:null,kDelId:null,cmdKshag:false,kshagSort:'latest',draft:null,permAdmin:false,sDelId:null};
 
 var BACK_ICON='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -668,10 +676,18 @@ function initWheels(){
 
 /* ---------- render ---------- */
 var app=document.getElementById('app'),navEl=document.getElementById('nav'),navbarEl=document.getElementById('navbar'),wrapEl=document.getElementById('wrap');
+function canOpenPermAdmin(){
+  if(me && hasPerm(me.id,'cmd')) return true;
+  var anyCmd=soldiers.some(function(s){return hasPerm(s.id,'cmd')});
+  return !anyCmd;
+}
 function render(){
   if(view.role!=='soldier' && (!me || !hasPerm(me.id,view.role))) view.role='soldier';
+  if(view.permAdmin && !canOpenPermAdmin()) view.permAdmin=false;
   var h=view.permAdmin?vPermAdmin():(view.role==='soldier'?vSoldier():view.role==='coach'?vCoach():vCmd());
   app.innerHTML=h;
+  var permBtn=document.getElementById('permLinkBtn');
+  if(permBtn) permBtn.style.display=canOpenPermAdmin()?'':'none';
   var roles=[['soldier','חייל']];
   if(me && hasPerm(me.id,'coach')) roles.push(['coach','אחראי כושר']);
   if(me && hasPerm(me.id,'cmd')) roles.push(['cmd','מפקד']);
@@ -697,11 +713,14 @@ function vPermAdmin(){
   }
   out+='<div class="stack" style="margin-top:20px">'+soldiers.map(function(s){
     var isMe=s.id===auth.uid;
+    var delRow=view.sDelId===s.id
+      ? '<button class="small primary" data-a="sdelok" data-id="'+s.id+'">אשר מחיקה</button><button class="small" data-a="sdelno">בטל</button>'
+      : '<button class="small" data-a="sdel" data-id="'+s.id+'">מחק</button>';
     return '<div class="line permrow"><span class="grow">'+esc(s.name)+(isMe?' (אני)':'')+' <span class="muted" style="font-size:12px">כיתה '+esc(s.squad)+'</span></span>'+
       '<span class="permbtns">'+
       '<button class="small'+(hasPerm(s.id,'cmd')?' primary':'')+'" data-a="permtoggle" data-v="cmd" data-id="'+s.id+'">מפקד</button>'+
       '<button class="small'+(hasPerm(s.id,'coach')?' primary':'')+'" data-a="permtoggle" data-v="coach" data-id="'+s.id+'">אחראי כושר</button>'+
-      '</span></div>';
+      '</span><div class="line" style="margin-top:6px;justify-content:flex-end">'+delRow+'</div></div>';
   }).join('')+'</div>';
   return out;
 }
@@ -717,8 +736,18 @@ document.addEventListener('click',function(e){
     if(v!=='soldier' && (!me || !hasPerm(me.id,v))){render();return}
     view.role=v;view.tid=null;view.edit=null;view.delId=null;view.cmdKshag=false;view.permAdmin=false;top();
   }
-  else if(a==='permopen'){view.permAdmin=true;top()}
+  else if(a==='permopen'){if(canOpenPermAdmin()){view.permAdmin=true;top()}}
   else if(a==='permback'){view.permAdmin=false;top()}
+  else if(a==='sdel'){view.sDelId=id}
+  else if(a==='sdelno'){view.sDelId=null}
+  else if(a==='sdelok'){
+    soldiers=soldiers.filter(function(s){return s.id!==id});
+    delete permissions[id];
+    view.sDelId=null;
+    if(me && me.id===id) me=null;
+    fsDel('soldiers',id);
+    fsDel('permissions',id);
+  }
   else if(a==='permtoggle'){
     var cur=hasPerm(id,v);
     setPerm(id,v,!cur);
