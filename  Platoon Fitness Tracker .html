@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מעקב כושר</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Rubik:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F2F2;--card:#FFFFFF;--card2:#EBEBEB;--fill:#DEDEDE;
+  --fg:#1C1C1C;--muted:#8E8E8E;--accent:#629050;--danger:#E0342A;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 1px 8px rgba(0,0,0,.04);
+  --navbg:rgba(255,255,255,.82);--picker-hl:#FFFFFF;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121212;--card:#1E1E1E;--card2:#2C2C2C;--fill:#3A3A3A;
+    --fg:#F2F2F2;--muted:#8E8E8E;--accent:#79AA67;--danger:#FF453A;
+    --shadow:0 1px 3px rgba(0,0,0,.5);--navbg:rgba(30,30,30,.78);--picker-hl:#484848;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121212;--card:#1E1E1E;--card2:#2C2C2C;--fill:#3A3A3A;
+  --fg:#F2F2F2;--muted:#8E8E8E;--accent:#79AA67;--danger:#FF453A;
+  --shadow:0 1px 3px rgba(0,0,0,.5);--navbg:rgba(30,30,30,.78);--picker-hl:#484848;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0;background:var(--bg);color:var(--fg);
+  font-family:"Heebo","Arial Hebrew",Arial,sans-serif;
+  font-size:17px;line-height:1.55;
+  -webkit-text-size-adjust:100%;
+}
+h1,h2,.big{font-family:"Rubik","Heebo","Arial Hebrew",Arial,sans-serif;letter-spacing:-.01em}
+.wrap{max-width:480px;margin:0 auto;padding:20px 16px 118px}
+.wrap.no-nav{padding-bottom:20px}
+.proto{
+  background:var(--card2);color:var(--muted);border-radius:12px;
+  padding:8px 12px;font-size:13px;margin-bottom:8px;
+}
+.permlink{display:block;margin:0 0 20px auto;color:var(--muted)}
+h1{font-size:30px;font-weight:700;margin:0 0 4px;line-height:1.2;color:var(--fg)}
+h2{font-size:19px;font-weight:700;margin:30px 0 10px;line-height:1.3;color:var(--fg)}
+p{margin:0}
+.sub{margin-bottom:8px;color:var(--muted)}
+.muted{font-size:14px;color:var(--muted)}
+button,input,textarea,select{font:inherit;color:var(--fg)}
+button{
+  background:var(--card2);border:0;border-radius:14px;
+  padding:12px 16px;cursor:pointer;min-height:48px;
+}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:#fff;font-weight:600}
+button.block{width:100%}
+button.small{min-height:38px;padding:8px 14px;font-size:14px;border-radius:10px}
+button.link{border:0;padding:8px 0;min-height:40px;text-decoration:none;color:var(--accent);font-weight:600;background:transparent}
+button.iconbtn{
+  border:0;background:var(--card2);padding:8px;
+  width:38px;height:38px;min-width:38px;min-height:38px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;color:var(--fg);
+}
+input,textarea,select{
+  width:100%;background:var(--card2);border:0;border-radius:12px;
+  padding:12px 14px;font-size:16px;
+}
+select{appearance:none;-webkit-appearance:none}
+textarea{min-height:130px;resize:vertical}
+label{display:block;font-weight:600;font-size:13px;color:var(--muted);margin:18px 0 6px}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.stack>*+*{margin-top:10px}
+.card{
+  display:block;width:100%;text-align:right;
+  background:var(--card);border:0;border-radius:16px;padding:16px;box-shadow:var(--shadow);
+}
+.card .top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.card .name{font-weight:600}
+.card .st{white-space:nowrap;color:var(--muted);font-size:14px}
+.card.done{box-shadow:var(--shadow),0 0 0 2px var(--accent) inset}
+.card.done .st{color:var(--accent);font-weight:600}
+.klvl{font-size:21px;font-weight:800;font-family:"Rubik","Heebo",sans-serif;letter-spacing:-.01em}
+.klvl-fail{color:var(--danger)}
+.klvl-pass{color:var(--fg)}
+.klvl-excellent{color:var(--accent)}
+.tag{display:inline-block;font-size:12px;color:var(--muted);background:var(--card2);border-radius:999px;padding:3px 10px;margin-top:8px}
+.bar{height:8px;border:0;border-radius:999px;background:var(--fill);margin:8px 0 4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.details{white-space:pre-wrap;background:var(--card2);border:0;border-radius:14px;padding:14px 16px;margin:16px 0}
+.err{background:color-mix(in srgb, var(--danger) 14%, transparent);color:var(--danger);border:0;border-radius:12px;padding:10px 14px;margin-top:12px;font-weight:600}
+.seg{display:flex;background:var(--fill);border-radius:12px;padding:4px;gap:2px}
+.seg button{flex:1;margin:0;border:0;background:transparent;border-radius:9px;color:var(--fg);min-height:38px;font-weight:500}
+.seg button.on{background:var(--card);color:var(--fg);font-weight:700;box-shadow:var(--shadow)}
+.big{font-size:56px;font-weight:800;line-height:1.1;color:var(--fg)}
+.picker{position:relative;margin-top:4px;background:var(--card2);border-radius:16px;padding:0 0}
+.pwrap{display:flex;align-items:center;justify-content:center;height:180px;position:relative;z-index:1}
+.pcol{width:76px;height:180px;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:68px 0}
+.pcol::-webkit-scrollbar{display:none}
+.pcol .pi{height:44px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;
+  font-size:26px;font-weight:400;font-family:"Rubik","Heebo",sans-serif;font-variant-numeric:tabular-nums;color:var(--fg);opacity:.32}
+.pcol .pi.sel{opacity:1;font-weight:700}
+.pcolon{font-size:26px;font-weight:700;padding:0 8px;font-family:"Rubik","Heebo",sans-serif;color:var(--fg)}
+.phit{position:absolute;left:12px;right:12px;top:68px;height:44px;background:var(--picker-hl);border-radius:10px;box-shadow:var(--shadow);pointer-events:none;z-index:0}
+.punits{display:flex;justify-content:center;gap:0;margin-top:2px;padding-bottom:10px}
+.punits span{width:76px;text-align:center;font-size:12px;color:var(--muted)}
+.punits .pcolon-sp{padding:0 8px;width:auto}
+.punits span.wide{width:112px}
+.pcol.wide{width:112px}
+.pcol .pi.label{font-size:15px;font-family:"Heebo","Arial Hebrew",Arial,sans-serif}
+.line{display:flex;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--card);border:0;border-radius:14px;margin-bottom:8px;box-shadow:var(--shadow)}
+.line:last-child{margin-bottom:0}
+.grow{flex:1}
+.permrow{flex-wrap:wrap;row-gap:8px}
+.permbtns{display:flex;gap:8px;white-space:nowrap}
+.permbtns button{white-space:nowrap}
+nav{
+  position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);
+  background:var(--navbg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,.16);
+  z-index:10;
+}
+nav .in{display:flex;max-width:480px;margin:0 auto;padding:6px;gap:4px}
+nav button{flex:1;border:0;border-radius:14px;min-height:52px;font-size:13px;background:transparent;color:var(--muted);font-weight:600;white-space:nowrap;padding:0 2px}
+@media (max-width:340px){nav button{font-size:11px}}
+nav button.on{background:var(--card2);color:var(--accent)}
+.emblem{width:100px;height:52px;background-color:var(--fg);opacity:.88;-webkit-mask:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAClCAYAAAAtbiQvAAAlDUlEQVR4nO2de7xkVXXnv/fe7ga6eTbNQ+UlyksQBE1QFIgjk6AYhDZBQCUMKBg/qPExaqJBzYwaE/ExRkUZFDWQfNTIJDyEAOLIQ4J0uhFoeTWCYiMveTQN3dxHzR9r/2bvOrfurVNVp+qcU7V+n8/+VNWpqnP22Wft315r7bXXBofD4RhRjJVdAUdfMJYUaP+cG8n7meQ/jRbfOxxDAyfAemMMGE/eNzACK5qwJvp8foejFDgB1hMivuk5vt8c2AHYDiOv3cJ/Ngc2y/z2WWBlONcYcB+wDlgGPA48A2zM/EeEKDJ0QnTUEk6A9YAIT89rKrxOAAcBuwD7AgdixLUnsDWwqItrrQM2YGS5Pny+GvgJ8Evg5xgxppgIr64dOhyOnjGGkcoCoombYhFwErCKqIG1KtOhTIUyOUeZxshrus35GsCDwPeBdwMvIpJfigVELdHhqCxcQKuF8VCmMse3Bl4MvBLYAzg0vEKzX07PM/ULdoqsBqfza1IlJeQZ4C5MQ/x34Frg4RbnTE3mmRbfOxylwAmwfIhURDSEzy8Hjgb2x0zbHTP/m2Y2IQ0CKeEuyHz3KHAP8FPgEkxDfajFORbgEyqOCsAJsBykPr1U29sfeCtwJLBf5j8yaSFqimVDZrE0xKw5/BiwBrgNuAa4IbxP4dqhwzEiGGe21rQVcCzwb9iMbEoqkxhBprOtVS7yI8qv2MonuQL4PPBH4d5TjBH9nj44O/oOF7L+IzVTpcEtAA4BjgHeBDw3+f0U1dHwekU7DfEB4CrgcuBG4M7M99nZbzebHY4aQB032+F3BT7E7NlbzdLWRdPrh4a4HptEeTs2u5yNV8xCs+QTDMdg4SgBrgEWi1azuBPAfwFOAf4YWBKOyyQc5XCRdOInO1jcD/wKWIsFaq8J5S7giTnO55Mrjo4wqh2vH5ggmrhj2MztWzHy2z/53TCZuEViPjJM8TDwa2zFykpgNXBT+JxFOrhktVGHwwmwR8ivpRnMXYFTgTfQTHrSSNy5nx/ZZXZZf2CKDRgRXoXFI67GNMe5IE2x1VJCDU7ZWWkNWE6gQwTvjN1DnUQ4HfgUsDQ5Vlas3jAjq8m1mlxZj5nL92D+1ruxCZd7seV8Kam2I7MFzA5Mzw58jprCCbA7iPy2B5YDhwPHh+/cxB080kmW+dp+Eptp/inwY+A4YG+aCXEt8MPw/Y3h+ATwUiwpxAPMDu4WGbpm6Bh6yAx7ObYELI1xG/ZZ3LoUzTan65/zrHPOllXAp4FXYKZ1A/NB/hj4BObnTZFdu+0z1I6hgszZhcCtWIfYiHW0sju9l/zEmAaYT2eKSDP93yQ2I91qgFsFvJ/moO7szH6rkCiHo3aQUG+OLfMahdi9US4iy/TYDK1J8l7gg8DuRBwD7JV8dn+wo/aQWfNdTPBd+xv+osmOVt9Ja9TnJ4EvYdl6rsQSyl4MnEBEdjmkw1EbLMBG8hNwAvQSS1ZbfBCbcEl/cwlRQ3QSrABcHe8cCp1QtpZGiXVxVAdKdNHABsXtMS1Q5DgFvA74D+CNxGgBj8Rw1AZyZG+DxZblzaLsZfRKK7M5tRY+S4RPkDgqD2nL2wA/w4TYyc9LpyUdNC/D5AmcBB0VhkyVpUTyc9+fl16K/IVriMsm3S84YLj/oT3SNajXA7+HkZ8Lq6NXSI4exvyDN9F66Z2jT/BJkPZQlpdzMPKbxMnPUQwWYLK1Hbaq6DCM/BbiyomjApBf5i9oNlu8eCmySK7uwHb+ExRy5XAMHCK/42kWUi9e+lHSCbXzgJ2IcCLsE7xRW0Ptsg02Km+LCaa7DBz9RCO8jgG/w9wu/4Blx4bZKdgcjr5APr53Y0Lp2p+XQZY0wuBR4G+BZRhcGywQrtG0RiO8Ho6RnwucY5CYIBLhUmwjrWuAg4jk6H3X0TdIuPbHsgs38KwvXsop2h+6gaX+PxPLRgQePN0zfBRpjbFQ9gAWE1PbOxyDhjaLnwE2wRKxXoNNkkzjIVk9wQlwbjSAE5P3DkeZGMfkcAp4CbYi6VV4UH5PcAKcjTFsZN0SEzBwU8NRDUgbnAZ2xNYSn07MLOPoEN5os6E22QtLaeTan6Nq0CZMS4CzgfeEzz5D3CGcAGdD/r/dMfJz/5+jikhN4i8An8dzDHYMJ8DZ0OzbIbggOaoN7U88hS3XPIe4osT7dg54B5+NMWzm93Zspk17zTocVcY0RobfBt6Ghc4okYdjDnjHboZSmp9ADDPwNnLUAdIET8LCZJbhYTJt4Z27GZrwOJJoCjscdYFyCR4MXIHtWzOFRzHMCTeBI7TZ0TIsAcLS8NnbyNEOGiyzslKW7Cg28AlsML8BT6TQEq4BRmiUPBojP5/9deRFmjU8LRA3RxokFCu4FXA58DJ8YqQlvEEiZO4eW2otHHWCZOZx4BfAY8ADoTwevhsPZdCTEfIJbgl8nfbunJEc7EfypltA5sHO2HaXi8qtjqMmkOm7DjgOMzV3xYhna0wT2xT4JLadQhkRBTKH/wybIc7ODKehNI4RhSLo30wMLi07C4iXehTF3d2HaVsXAk8BjwArgW9hadX+Pvxu0LKl6/0EQ0rAWTJ2hWhEoVCB8zBh8QSoXjopkpfPArswO3XaNPBe4Bvh86BJcBp4FvMFghGffN5bAP8NuBE4KhzzWeMRghzWmwCriQJTdqfyUp8yg5HaBkwLfEs4/izNZPddoowNMr+k6nAuJuubYjgCuDf53SvCcSfAEYIe9msxIXDy89JNEcmcjeHa5PhM8v0zJdRNMv1rYLNQv8OBB5M6/jgcHykz2GeB4wN/HiYMHivl6AaKIz0O29f35+F4gzjRMEPUvgYFkeAM8H6MgF+MhcdsD2wMdftl+P1IaX9OgBGbMGKjn6NwKJfkQmDfcGwCmyW+i5jBZZCYCXU4CTPBtwQuwOR9ihjx8BpsDfwUI9QPnAAjDii7Ao6hwN2YNfFKova3GAtDuYPBWhlKkPBl4HxswuOH2BK5dJ1wAwsBe0H4PDK8MDI3Og8kjLuE15EZ/RyFQprdfwCHEePtREJLgI8xuCVpM5gs/wb4aDj2JSzNW7o+WFprAzONdWwk4AQYhfH54XVkHr6jL7gKm12F6BcEeCFmgq4kLlXrJ5TJ6C+xVSkfwrTQdA+RSWzmWnU9qM91qhycACMmy66Ao9YYx8hkBZZNHJoH0x0xMnw//dcA5Ye8EPgO8NfY5uqTxIwxDSw4+yoiIR4YXkdmItAJ0KDF7A5HN0jNzQdpPZO6d3j9afidZoX7UZdxYA2wHDgD+BuafX6Kff0GcfYXYDcsTMYJcESg+98JN4Ed3UNm7i0Y0bRaSy5S3AB8OrwvmmhUjzFsVcfJmN9PpDhG9P/9CCPJ25P/Pg9LB6dzDD1GnQCFhXgCBEf3EPGsCq8peej91uF1IfBV4CsU7wsU0Z2IxSN+EzN7pfHp+0extPljGAEqGHoh5quEEeGGkbjJHNAsmMPRC54Jr6lmJ7laG16lCX4QS5tVVGygZpv/F7YELzV7RcKNcL23YaZvA0vcoNyX45g1NDJwAjQsDq9Ogo5esAXWp1qt9tgMI5kNwKHYjOsPiJpZL5Bmdzs2CfN94iywyE8E+Tng/2CB0GAmb6qJKoB7JEzgUd8wRTFZ+xNzoo16mzi6xwZMjhRQnJLIbdgA+wfYfh0LME0Nel9+Js3uJuC05Hiq+U0A92AbJr0euDL5Lv2tFgSMxESIa4AGD4FxFIEp4Dk0x/+J3C4EtsHCUqRxFeV3Vj8+HAt0FuEJIrcdQj0uwkxwML9feo6XY/7KGUZAC3QCNOxWdgUcQ4FnsXAXWRYpgfwOm5jYibhnb1HQdXameT+SLJZgxDsDnB7quT58J8J+ANNkh578wAlQ2KHsCjiGAg2i+Zs1LbcA3kg0V/t1/XaYCL97Lpam/7nhuEze3xAJcOh94k6AhiVlV8AxFJgBNp/ju02xgXY+Da1XdHLeBvBuZls/C2f/dHgx6gSomS85fkdC7Z8DQz/a9xHqRw9i6eXTY2C+wd0xExWqIWfKgp71f4+UHIw6AYK1wRZlV6ICqEKnrCvk8zsE2Cs5JmwAXoJNgihFVpnQ9bcjhoAJI8UJoxzyIR/HDnSfB22S+psM6pBrMA3FV8R0BrXfQ5iWJzLMytKhmd+XCV3/xcDS8F71/XnyeehDYUaK7TPQve+B+QA7nfZ/Crg+vK+z2SAhPwfbMwLqfT+DhmRmGZZVGWb3q82xEJVW35UB1XkbLDlqeuyRwVenPFThYZSNveksGj9d2rQ6vK/zSCnB/09shzCo9/0MGpKHR6in9qz6iwveRAyXKVtT7TtGmQD1cJ8/769mQ+RwO2b2zFBvwhjH4tduBH4WjrkGmB9ypWyknv1pLPO6EzFUZuhRxwdWFGTydpsGfD3R11NXX6r2pr0feIKo0Q79yF8wxrAtFereblpB8pzwue730xajSoAyeZdh+zdA/raQULwQI4y7MAKB+o2aGgRWhM8/wTKajNTWiAWh7mQhTXYxlhdQx4Yao0qAuu8DsG0CO5kA0e/2AK7GQh+eDMfqRoDjmK/nk+Hz/UQzuN97VjiqB7lylL3aCXBIoQf7+vDajQ9PpPkI5j/r9jxlQemSPgPcjAXFTgPnlVgnRzWwV/ufDAdGkQC1DeAmwNHhWCcmn8znrTEtcAy4tsD6DQIiv58CZ2L3rxUBl2MOfaifRuvoDeKDQ4nWwVBjFAlQGXhfjs0Ad5P2RwvadyD6TeqCdJH+R4lCPoMR4VrgXGJ+RMfoQHywNzYb3M/EDZXAUN/cHBDZvTG8dmO2ikR+L7w+lDl3laHMwO/ENsbRBt4QZ7U/hGmHC3ESHDVMYdmrXxs+jyJHDC2UiWMRcU8E7QfSSdG+qpeE8+7XxTnKKKq3fJatTH+R+JbAdeH3kxWou5fBFPWHm7EBsJ/Za0rHqLG7zN9DsDRArdZs5oEEQqn06yAgutffAqcw92Y8jfDdk8CR2HI/babtGH7I97c/8MeYPAxtWNSoEWBq/jboftZW5PE8YFdgXQ/nGhQ0ui8HbmX+5X8iy3WYKXQdToKjBGmDR5VdEUfxWISteU3V/W6KzMmTMbK4v4Bz9qvIhP1iaIO8GWw0QG6BBUk3sGVzZd+Pl/4WyfA9mD8Q6mHlOOaBlqv9IfZwRWDdFpHKVeG852aOV6VoD4hVWFaSTk12keAmwJeTttMyOi/DWUSCChWr63JPR4D8GBdjD7ZXohIBPIMtqdsdI4aqaYAi+kPC/Xfj9kj/897k3FW7Vy/FlUlMxj9tj90JsM6Q1iPtr6iOKxLVFoNXh8+9apdFFdXjM6F+vQjxGHEQOQlLnlCle/VSbJFsfyM886GdCBkF6OFdTrGdVue5OVzjyILP30uR6bs61G2cYvw48h++FFsGmHaWtF2q0AZeui96fv8Znrf7AGsKkd8rsL0ZijTbZAZvxGaDx7FkAtOUTwAipb8I91+kCSMSPAibUdb11LZXY21ddieualEOybLrkaeOTxF3jnMSrBnGMFLaHLgNe7BFE+BMOKcSq74mfFfmZIjI9zZs1rso7S+FBpatgQuTa18KfKECbdAPQijiPKn8FTFISv76QajT4Rm+LDzroQubG7obymACE4xTgRdhAlfkPWsd8bXYfhoLsVnhv6P8uLlp4CNY2Eo/NrnWkrrHgWOB9wGPAt/HksUOE7pZLz4XxomJJ3rxq4lANcgX/Ywb4bwbgV8lxxw1gQRjEyxpqUbKIjWCKUxAlFVavjYwTaioUb4bDUPZnfs9yKVLpZZiiSFuyNSlzkX3cC/2rLs9j0KHzsMyLh8AfBaLIuhFe1uPJbRN5bKoe1edjwjP1ydCagT5vN5G8UQ0QwwIflu4joRjnEi8qxk8Eeg+34MR06DCF9LOsYrB33c/iup/EeZL1aDXy3P5NpZFCGzAuKvDtpLb5R7gA1jWFrAUVmspzr84jflxp7DJPXACrA2k/W2KCUrR2p98W/8jXC9LMhKUl4TfDkoLlC9oJc3a6KAgU0waSZ0JMJ1FH8fcHCmR9VI2ArcAT/dQr+uIfudxLL3bffRnguXD4ToeC1gT6EG9neKEtoEJlsjvY+Eac62sUB2+W3Ad5iuq2ymZOgwKaoeVxM7az/vt50yqntergeMzx3op2Tbp5h7S/9wF3Flgm6h+P8Ksm2OB7TPP11FhSPvbBkt5NU0xHTEdWT8SrjWfSaDv9sT8NP1eJSItdwMWtqB2GCTUQX5G687er/tWCE63nV9tNxmK3BuTWFqwG4j+3iJIt4iZ21ZtW0TdNIhKxh01g7SeT9H8QHspGvmfBU4L559vTa2O/wOwFfAJihPQdoJ7ZlK/QUNt//VMnYouascHW3yXHWjSUKUpIsm1q9sUcH64p9tbfFeFOD7dV5FhMGq7O7EQqgUMf7TI0EA+qJ2Ax+heMNL/iPw2ErPkzmdainhODP87DNMiHgV+0+L8RRR1yFuIkzBlmCtqFyVN6AcB6nlcisV3/j4WdnQrzZlqOpmwWIvFTH4P+By21G9v4rPcEvivwNeAh/twT1UrIkGf/a0Z1AH/iebO0smDT7UHdeD7sA4A86eSEvk8B1smNgW8KXx3EPAvmfMWUdIJnj8I1ypLYNX+X6U/BChtbj3wgsy1xzB3wwew5VspYT6EEdxl2NrWv8LSmB0I7IsRad4BYzvgzdjyx6In16pSfB1wDaHOp5UYnZBfOrnRwHL7SZu4m7gUqN2kgr4/KznXOcn3q2geYYsU1neEa5QprLr/L9EfAtQzOTm53jizn8s4FhZyLDZTujRn/SfCuXRekeJY8p1wGcU/y6qUNB+gz/zWAPJRLMLCFvKOzHJ8p8T3DuJSrn8FdgznbicICgjeEks7LzN3NaY1ThBn64rqNCKEs3LWsd/Qc/gxVq8iZ751rx8P12h1r63IsNX3KcmJ6PJogDp3kbPCVS2yhmQGly1bjjkgwV1EvtUXqUNcxx7GSERBpVcD/5uoTeXRqiQg8v3JLzcN7INpIYr7KsIHKEL4QXL9ssMUdP0bKZboNUidF86fZzCSxlaUP1TnOQIzqRUkXDZR9Yv8ngnvL6Q5FZqjQkgDni8hEsNMi6IZwPRB/wKboX1ucs4JbIG/kHcGTNrFz1pc72QsaWpKwr0IqDre9cASypv0yELE9E2aiauIe/3HcP4yNqGShrgDzTF3uscqzAj3WiSz6aC1Dht0lvTcgo6+QB3/+8SRq92Dfhrb8/Y0jDiFrAbVCamIJF9Ic4cQAfwlsC3NwtatoOqc12Pmdnr9sqH20iRErxqg/r+W2AnLvNcJbK3zYdhEys0MHxE2gDVYJmitNKnC4OrIQB1hX2yk+h2WpfjJTHkCC4m5AjgDI6kUrUzHTh+4NJ930UxS0l7OJ+4d3EvMlgjhIaJvskqmSZGB0KlGsjyct2p+qE2xwW0d89/LRnpLpNDPIllch61aei3NGl+V5MvRAptg5uV8ZdvMf+TTKGJkS7POSCNQx5cf8B+xEJWUFDstOtfNGOlD9YSzyEBotdMnM+cuG61mhF+ArZf9Jc0DnOTgNmwA7uX596OormuZHVbkAdBDBvnoin6oIqFW4Td6fzZGgt12AHWkjVhew/S6VUJRgdDy2/4Oi9Grio8zi2y2nZdgz0jPS0T4EHABzc+yCkX1expb7zuBRSxUsa37gmFh+LEcRSZVvzYwfwtRsEheN2Im8B+Fz522+TRW/99iWqT2+Jjuoa79Rq9ypXv+FpaSXRvRVw0a0BQcf1p4r7qKSJZgIVbpsTKRan8bMevlYJq115HAsBBgntGuHxjHBGZbzE+VhgtMhvdnALtgprg6dl7MEE3112OTNwuoNvlB75mwx7F7PDd87tegVQQmsGd9OPDnxOebrheuAqmI9CDK6QRGfuPEFUtVIOiBoSp+lbpiHBP0M7AZ2SmsTSexuMSvYWbc9zDh62TAUad5ANMsVlB+mv12UCffpodzKNX+CixMSYNMFSHLYgHm97wfa4OdM7/T/TyJyUmDwRGNCFiEByaTd2LxryswE/ju8F1V29pRMaQbLj1Kc0qlBhYLtzO2Z0Y3SSrlK3xFuF4dBit16uxkUCdF7VeV1S15MIGt9V6MZf9Zjq0mWkFsg4OxZBWD8AOmKcJ07BksG/WryL800OGYE+qYHyISlkjrn8N3K5PvuiG/T4XzzJeAoUooIgxG9/7WcK4qTvbkxR7AXphpvCe2tLIbeeilPIitzd4zU7d0NlsB5g5HLsiU3Q3T8KT5zRB30DqbZo2mEwJQuAuUs/KhG2iyaQm2iL5bApQjXppvXTpmuqZYefQuA67ENpEHy67SjUx00nYNLEv0KVg269QdUWaqNMeQQKEP48DlRIEWce2HBZM2aM5P16kGdGpyrTpAg8IuxA7eqdmv3z9GjN2s40SdSOaVxHv7NuYr7icB6rwfzNSnjP1hHEMKaSTnEglLgvdRzA+0ju6yBqcTH5uRP0tJFaAOtgNxIX2n9y8N5sZwrrrceytITt6CtcMd2JpwJeIocve27OB5FDZwLqLebeioGCTU6WZLErqLwnf/TrMwdjOCfz1zvTogXZqYJqTo9P5ngK+Ec9VF+50L8t3+T+z+ltN6bxiRYqeDps6zgeYM2K8P162T/DgqjnSrSxGcBHc9Fkl/Er2ZOPrfCdTL/IXYPsfQ/QCg/7wuc846I00SexhxhvxubIJiPb3JykVY/sUZosvFCTAn6tTBqoIPJ+8VA/b32Cj8VWIcW6dohP81iOESdYzJmuzyf4pVewDLx6hjdYfiNt+FDWpnYetuHwyvd2JJFdZhISpHYWn3YW7zVfGml2BtpQ3A3M/n6AskWHsRiUmzlb+iOR9hL8kOGtjC+TrO1In0l9NdO0ij0RYCwzY4awYWYFean/s92KZOa2g/caZ2vRULr1EmGjeBu8CwCVm/oNUIxxJ9LwqEPh54A2a2aWTuBV8kapZVXvWRhQh7//Da6PL/PwjvO/1/1SENd5w4kGod8fPn+V+rc9yOzfSejwXiN2geMIet7RwlQyP3dZhwaZS+PRy/gNkbK3VS5Ph+ghilX1cNUINEp5tSNbDZ413CeYbRnFMbHUdzG6UWxVxtpAmPNdgWC7cwu531/tjM9RxzYBiFrB/QiLo48/kuYuBrL4SlRepXYus05QusI7rxAepe78P2Tk6PDRMkIwfRnCBB1sRcMiSS3IhNkH0cizfN+pt1vtfiyAUnwPzQwneI7bYfZsLskzneLa6gXrF/rdBNG6hdbyOaecNIgLqn6+ksxdc05hL5CHAIpkEq21AKtf2rw3fDMInkqACya1xl6q7FJkBup9lM6cYEfoaYlbeOA5M6o1bBdGICqz3/ezjHMPum9Wy/Q/O9t5v0uAZbW5wuu5zv96eH67gZ7OgJEtjnYOZpKmT3h++vovNOn/Xt3EM0peuoAaqjnUznbZFmTEnPNYxIc0b+C61JUEHk6RLL3bCtWtu1rdryAWxwrqs8OSoCCetRROFLJy02xTSXPKP5fCP2d8J16qr9qN5n0VlbqMPeTf2W/3UL+fu2BlZh97+R5pVFaTkB+DPyDyz6zZvD9eoqU44KQAR4NM3Cla5a2Jnud3sToR6ZuV7doE72d3RGgPrdsCx/yws9592wjEJpm2zA3CoXAYdi2WTUVnlkTLK5GrMq6hhXOhCMirAVgXWY8EmQGuH1DcClWFjCAXS2EqQRfvsMMf1VnR3XY3Qeu6iYP62lbszz22GCMoTfi5n+iiO9A9tEaRkmCwdia4khf2q0iXCufYAPYCtF6hZX6qgI5APcnrhuU3Fb8rUsBv6Q5mj8Tsy/tViq9DqbfyJ97X6XRwNM/Z8jtRtZguw9/w0W69epJdGqbbVSaZMW13E4ckPLmH5CM8mpk2vv2kvpjAT1u/+bXKeOSJOh/ppmcstj/sr/WVfzv1doX+kFNC8lVKq1btNmSb7eEK7jFp+jK0hw0jRY0gRnsM1utiUmwMwbDqPzrKDeSSvVPu+h+b7y3v8xmfOMKjQAaCKpm4S6rdr3qnDeusqXo2TIfNgay1Ys8ku1mC+H3/yc/CSgczyJ+XzSa9UJ6ljXk18D1r0/jJn/UM97LxJKgTZGzCvZKwlqMH5NuMaoatmOHiHByW5sk+4GtxsWqZ9XC0wJUCng60YCIr/9sVCOvNqvBo7zw/+9YxrkblnG7MD7XrTAH4bzezs7uoJG5k8wWyj1XrvBXUw+TUgE+BSwU/hv3QhQZuv76ayziihfHf7vHTNCg8pSIgl2m2ZNbpp1WDD/GG4KO7qAhGZPYgry1Dmt7NA7E32BeQhwBptd3i2cv24EqHa5gvwdNQ1+1sDiaIYGhG3onQT1P4XTjLqv1dEl1Nl/xGxtJ7s3yAryaYH6/vDwvzppQmmCzw00a7V5zN/Phf97h2yNlATvp3nw6FQLnMYsjX1wLdDRJaStvJPW5p7I7Pcx0y6PwOoc70quUReoE72Yzjqk2qSOpD9oqG1eilkK3e4mJzk7K5yvTnLmqAjSvW+fpnXHnsZWhSzGAlrToOn5NMDrqN/IrM75p+Q30dR5HwW2Cv93E3h+iKyWY7KkXfc61QJnsIQe21E/WXNUBBKauTLAaKR9H3DiHL+ZizhfSnO2kKpDHfM0WmvE82kiF4f/eifMB22x+WHyt/Vcg+0/hXPVRc4cFYI6/Z/Tmtyk8a3DQmIeoL3ZImH+28w1qg7V8yt0ToB1NPnLhtrq81gbdhMjKHk9IpzLSdDREaSxvIi5lylJyC7AAqTbaYEizSexpKjpDmJVhkxX7XXbzt+ZhmQo7KcO91kVpGardiHsVBNU9qFrqI+cOSqGcWzkXMncM70ya0/F9rlopwXqHP8arlEXzWgC2xslDwHqHi9O/uvoDJK9JbSORshTlCjhANwX6OgCIqd3M7cAigyuwzJ8tNMC0++Xh/NXmSDUaXYimmLtHPNu/hYDtf0SYuaYTmIE9VsF7ldZzhwVhEy/HbDZzLm0OwnamcBNtJ8R1vePYVH7UN3RWZ0mXfrXjgDrHPNYNajt9sJSXrWTrblM4RMz53M4ckEC8z3mHoFFCmuAv0qO5SGJH2Hp9vMmwRw0dP9HkL/z6d6Oz5zD0R3Ufvti67A7IcE0F+OmjGjW6KpqF3WAcuCtDJ8bLX4zjgnl7piA3pQcmwvK5vtq4GPEzMFVRTf7AB/HCHa2PkDbZd6GtakylreSxSzGMTl7PvAW4nakDkcuSFjaZYKWqXEV8/sMs6bwJLa8bF+q6aiW/+5d5HfEy0T+LXGTeSfC3qFncTT2HPImUU0tlM0YUS3Q0R1ESC9kdgdv1fE3AH9C3AAn74TBpeE62QmDstPnqz6fIT8B6r6fxrRiqB6x1xUKlH4fnT0PDdxfDP93LdCRCyKfrbA9Pebz70kYP46FgMzlM5xLe3xduJbSpqdCWlYslwjwS3TX4Y7B7sNngouDSPBMOtPKpzDZPTD830mwoqhq4OatzE+AOn4LcC75CVAmyp3EjNHCjsSZYhi80Iq4vklnBKjf/VvmPI5ioPb8Np0NtA1szxtwAqwkUuKrkp9iDNvDdT4CTH1fnye/YKbnvBnTmt4DfBczpR/HiKSMkbvdmuj5NI4ZbFLo9HAO73DFQWn1F9LZs9FvPHV+C5TtHNXD2APzianDV0Ub/AX5CVAmYzfbZ85VNmApumAwmytJFpYye4+UTu/pjKTejmLQjX9W7pZrsWcxEtuUtjM/NPs4nfl9o281akYDexiTwMuAy7C9Mz4Wjk8kdasDnsDW+3YKhc5IWNNZ4RlgEbbmeA/gveH4Apo3ci8Sqs9W2GqEbjGNrZK5AGuXBQxOtoYZWi63uN0PE6gvvRI4GXPVaFCSzFUdKaH3jFSL2BnrZGXhZVgeMzls/6TEurTCbcyvqen4FcA5dK4B5jErNcp/nd5IqRMcQ+ebwadFdT57QPUdNXQzQz+FuVbeSX21crkB2i4imEsDXIA1xATWiO/A0jpdiW3ifU/4XT9Ha1V8R+A8LC34sxgRHwbcR3U0wLwj7TJimxc5ouqBT2F7F++DzTg/RYEjYgK1+3J6u48JrNOdim0hsIr2geKO9tDzeRh79nldIspFuRVmUbwd27bgjvB91bXzjdg+M09jfUGQNTRLrrLCm5q8O2OLpQ/pR027QF3U8LIxTX1Hbkc1IG2wjnL0W0xBuw5L+XUNptFCHHD/P5HPRSjHYcz/PEx9lm9GPqVBTj6I+MYyx6qEqhGzRrpB1KuIa6S+TUdx6LU9RRZVmWxsh1b3+yvgO8A3iJbrrD+IYJZhs5THheOuTTgcjjohjUhIt5dYB3wLC0P7pX4rZtcC6k2JmXp9RHY4HHVEq7C9LbDNoDYLn8fI/CjNIvHXwEewpVdTRBNY7DpoEzirhfbDse9wOOoL8VeWm57Cwue+gPkFZ/2p1ecGFmz8z8CeRBIsCyI710gdDsd8mAQeAa7Htpe4Hst2Ax1MgiikYhm249efYiEoq7E1hjfQfw1M4RD7YbFzYDe3EPNTXkB1wmAcDke5kMvuUSw5yfrkuwmi9Zobqdl5DBZbVhbeit2QkgOcUmJdHA5H9aFMQ/O669qZlKlJLAx6udIEpn0eD3wN2BI4GAucdQ3Q4XCkKHQ5nNCWSfsM5Tk7GEsN9arw2UN0HA5H1/h/EqK8Y2C+7vUAAAAASUVORK5CYII=) center/contain no-repeat;mask:url(data:image/png;base64,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) center/contain no-repeat;margin:0 auto 14px;}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="emblem" role="img" aria-label="סמל המחלקה"></div>
+  <div class="proto" id="syncMsg">מתחבר...</div>
+  <button class="small permlink" data-a="permopen" type="button">ניהול הרשאות</button>
+  <main id="app"></main>
+</div>
+<nav id="navbar"><div class="in" id="nav"></div></nav>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Firebase (plain REST, no SDK) ---------- */
+var FB_CONFIG={apiKey:"AIzaSyDwityXYqOgKda2Xhpti4e7PuQLO2p3rMo",projectId:"platoon-fitness-tracker"};
+var FS_BASE='https://firestore.googleapis.com/v1/projects/'+FB_CONFIG.projectId+'/databases/(default)/documents/';
+var AUTH_SIGNUP='https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+FB_CONFIG.apiKey;
+var AUTH_REFRESH='https://securetoken.googleapis.com/v1/token?key='+FB_CONFIG.apiKey;
+var LS_KEY='pft_auth_v1';
+var auth={uid:null,idToken:null,refreshToken:null,expAt:0};
+
+function saveAuth(){try{localStorage.setItem(LS_KEY,JSON.stringify(auth))}catch(e){}}
+function loadAuth(){try{var s=localStorage.getItem(LS_KEY);if(s){var a=JSON.parse(s);if(a&&a.uid&&a.refreshToken){auth=a;return true}}}catch(e){}return false}
+function signInAnon(){
+  return fetch(AUTH_SIGNUP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({returnSecureToken:true})})
+    .then(function(r){if(!r.ok)throw new Error('auth-signup-failed');return r.json()})
+    .then(function(d){
+      auth={uid:d.localId,idToken:d.idToken,refreshToken:d.refreshToken,expAt:Date.now()+(parseInt(d.expiresIn,10)||3600)*1000-60000};
+      saveAuth();
+    });
+}
+function refreshAuth(){
+  var body='grant_type=refresh_token&refresh_token='+encodeURIComponent(auth.refreshToken);
+  return fetch(AUTH_REFRESH,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body})
+    .then(function(r){if(!r.ok)throw new Error('auth-refresh-failed');return r.json()})
+    .then(function(d){
+      auth.uid=d.user_id;auth.idToken=d.id_token;auth.refreshToken=d.refresh_token;
+      auth.expAt=Date.now()+(parseInt(d.expires_in,10)||3600)*1000-60000;
+      saveAuth();
+    });
+}
+function ensureAuth(){
+  if(auth.uid && auth.idToken && Date.now()<auth.expAt) return Promise.resolve();
+  if(auth.refreshToken) return refreshAuth().catch(function(){return signInAnon()});
+  return signInAnon();
+}
+
+function fsEnc(v){
+  if(v===null||v===undefined) return {nullValue:null};
+  if(typeof v==='boolean') return {booleanValue:v};
+  if(typeof v==='number') return Number.isInteger(v)?{integerValue:String(v)}:{doubleValue:v};
+  if(typeof v==='string') return {stringValue:v};
+  if(Array.isArray(v)) return {arrayValue:{values:v.map(fsEnc)}};
+  if(typeof v==='object'){var f={};for(var k in v){if(v.hasOwnProperty(k))f[k]=fsEnc(v[k])}return {mapValue:{fields:f}}}
+  return {stringValue:String(v)};
+}
+function fsDec(val){
+  if(!val) return null;
+  if('nullValue' in val) return null;
+  if('booleanValue' in val) return val.booleanValue;
+  if('integerValue' in val) return parseInt(val.integerValue,10);
+  if('doubleValue' in val) return val.doubleValue;
+  if('stringValue' in val) return val.stringValue;
+  if('arrayValue' in val) return (val.arrayValue.values||[]).map(fsDec);
+  if('mapValue' in val){var o={},f=val.mapValue.fields||{};for(var k in f){if(f.hasOwnProperty(k))o[k]=fsDec(f[k])}return o}
+  return null;
+}
+function fsDecDoc(doc){
+  var o={},f=doc.fields||{};
+  for(var k in f){if(f.hasOwnProperty(k))o[k]=fsDec(f[k])}
+  o.id=doc.name.split('/').pop();
+  return o;
+}
+function fsFields(obj){
+  var f={};for(var k in obj){if(obj.hasOwnProperty(k)&&k!=='id')f[k]=fsEnc(obj[k])}return f;
+}
+function markSync(ok){
+  var el=document.getElementById('syncMsg');
+  if(el) el.textContent=ok?'':'בעיית חיבור - שינויים אחרונים אולי לא נשמרו. בדוק את החיבור לאינטרנט.';
+}
+function fsList(col){
+  return ensureAuth().then(function(){
+    return fetch(FS_BASE+col+'?pageSize=1000',{headers:{'Authorization':'Bearer '+auth.idToken}});
+  }).then(function(r){if(!r.ok)throw new Error('list-failed');return r.json()})
+    .then(function(d){markSync(true);return (d.documents||[]).map(fsDecDoc)})
+    .catch(function(e){markSync(false);throw e});
+}
+function fsSet(col,id,obj){
+  return ensureAuth().then(function(){
+    return fetch(FS_BASE+col+'/'+encodeURIComponent(id),{
+      method:'PATCH',headers:{'Authorization':'Bearer '+auth.idToken,'Content-Type':'application/json'},
+      body:JSON.stringify({fields:fsFields(obj)})
+    });
+  }).then(function(r){if(!r.ok)throw new Error('set-failed');markSync(true);return r})
+    .catch(function(e){markSync(false);throw e});
+}
+function fsDel(col,id){
+  return ensureAuth().then(function(){
+    return fetch(FS_BASE+col+'/'+encodeURIComponent(id),{method:'DELETE',headers:{'Authorization':'Bearer '+auth.idToken}});
+  }).then(function(r){if(!r.ok)throw new Error('del-failed');markSync(true);return r})
+    .catch(function(e){markSync(false);throw e});
+}
+
+var SQUADS=['א׳','ב׳','ג׳'];
+var TYPE={strength:'כוח',running:'ריצה'};
+
+var trainings=[
+  {id:'t1',type:'strength',title:'אימון כוח 1',details:'4 סבבים\nמתח: 4 חזרות\nשכיבות שמיכה: 15\nסקוואט: 20\nמנוחה של 90 שניות בין סבבים'},
+  {id:'t2',type:'running',title:'ריצה 1',details:'חימום של 10 דקות\n5 ק״מ בקצב היעד\nהליכה לסיום',targetKm:'5',targetPace:'5:45'},
+  {id:'t3',type:'strength',title:'אימון כוח 2',details:'3 סבבים\nמתח: 5 חזרות\nמקבילים: 10\nבטן: 30 חזרות\nמנוחה של 60 שניות בין סבבים'},
+  {id:'t4',type:'running',title:'ריצה 2',details:'חימום של 10 דקות\n6 מקטעים של 400 מטר מהירים\nהליכה של 200 מטר בין מקטעים',targetKm:'3',targetPace:'5:15'}
+];
+var nextId=5;
+
+var soldiers=[];
+var reports={};
+var me=null;
+var goals=[];
+var goalNextId=1;
+var kshag=[];
+var kshagNextId=1;
+var permissions={};
+function hasPerm(sid,kind){return !!(permissions[sid]&&permissions[sid][kind])}
+function setPerm(sid,kind,val){permissions[sid]=permissions[sid]||{};permissions[sid][kind]=val}
+var HEBREW_MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+var KSHAG_MIN={pull:7,dips:11,sprintSec:60,runSec:14*60};
+var KSHAG_EXCELLENT={pull:15,dips:20,sprintSec:45,runSec:11*60};
+function gradeKshag(pull,dips,sprintSec,runSec){
+  var excellent=pull>=KSHAG_EXCELLENT.pull && dips>=KSHAG_EXCELLENT.dips && sprintSec<KSHAG_EXCELLENT.sprintSec && runSec<KSHAG_EXCELLENT.runSec;
+  var passed=pull>=KSHAG_MIN.pull && dips>=KSHAG_MIN.dips && sprintSec<KSHAG_MIN.sprintSec && runSec<KSHAG_MIN.runSec;
+  return {level:excellent?'מצטיין':(passed?'עובר':'לא עבר'),levelClass:excellent?'excellent':(passed?'pass':'fail')};
+}
+function kshagDateStr(day,month,year){return day+' ב'+HEBREW_MONTHS[month]+' '+year}
+var KLVL_RANK={excellent:3,pass:2,fail:1};
+
+var view={role:'soldier',tid:null,coachType:'strength',edit:null,delId:null,sq:null,nm:'',err:'',personal:false,pTab:'history',wheelVals:{},kshagOpen:true,gDelId:null,kDelId:null,cmdKshag:false,kshagSort:'latest',draft:null,permAdmin:false};
+
+var BACK_ICON='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmt(sec){var m=Math.floor(sec/60),s=Math.round(sec%60);if(s===60){m++;s=0}return m+':'+(s<10?'0':'')+s}
+function parsePace(str){
+  var m=/^\s*(\d{1,2}):([0-5]\d)\s*$/.exec(str||'');
+  return m?parseInt(m[1],10)*60+parseInt(m[2],10):NaN;
+}
+function parseTime(str){
+  var s=(str||'').trim();
+  var m=/^(\d{1,3})$/.exec(s);
+  if(m) return parseInt(m[1],10)*60;
+  m=/^(\d{1,3}):([0-5]\d)$/.exec(s);
+  return m?parseInt(m[1],10)*60+parseInt(m[2],10):NaN;
+}
+function pct(a,b){return b?Math.round(a*100/b):0}
+function bar(p){return '<div class="bar"><i style="width:'+p+'%"></i></div>'}
+function rep(sid,tid){return reports[sid+'|'+tid]}
+function doneCount(sid){return trainings.filter(function(t){return rep(sid,t.id)}).length}
+function byId(id){return trainings.filter(function(t){return t.id===id})[0]}
+
+/* ---------- soldier ---------- */
+function vOnboarding(){
+  var sq=view.sq;
+  var seg=SQUADS.map(function(q){
+    return '<button data-a="sq" data-v="'+q+'" class="'+(sq===q?'on':'')+'">כיתה '+q+'</button>';
+  }).join('');
+  return '<h1>ברוך הבא</h1>'+
+    '<p class="sub">כדי להתחיל, מלא את הפרטים שלך.</p>'+
+    '<label for="nm">שם מלא</label>'+
+    '<input id="nm" type="text" autocomplete="off" value="'+esc(view.nm)+'">'+
+    '<label>כיתה</label><div class="seg">'+seg+'</div>'+
+    (view.err?'<div class="err">'+esc(view.err)+'</div>':'')+
+    '<div style="margin-top:24px"><button class="primary block" data-a="start">התחל</button></div>';
+}
+function vSoldier(){
+  if(!me) return vOnboarding();
+  if(view.personal) return vPersonal();
+  if(view.tid) return vDetail();
+  var done=doneCount(auth.uid),n=trainings.length;
+  var cards=trainings.map(function(t){
+    var r=rep(auth.uid,t.id);
+    var st=r?'בוצע':'לא בוצע';
+    if(r&&t.type==='running'&&r.pace) st='קצב '+esc(r.pace)+' לק״מ';
+    return '<button class="card'+(r?' done':'')+'" data-a="open" data-id="'+t.id+'">'+
+      '<div class="top"><span class="name">'+esc(t.title)+'</span><span class="st">'+st+'</span></div>'+
+      '<div class="tag">'+TYPE[t.type]+'</div></button>';
+  }).join('');
+  return '<h1>שלום, '+esc(me.name)+'</h1>'+
+    '<p class="sub">כיתה '+esc(me.squad)+'</p>'+
+    '<h2>התוכנית השבועית</h2>'+
+    '<p>בוצעו '+done+' מתוך '+n+' אימונים</p>'+bar(pct(done,n))+
+    '<div class="stack" style="margin-top:16px">'+cards+'</div>'+
+    '<div style="margin-top:20px"><button class="block" data-a="openpersonal">האזור האישי שלי</button></div>';
+}
+function vDetail(){
+  var t=byId(view.tid);
+  if(!t){view.tid=null;return vSoldier()}
+  var r=rep(auth.uid,t.id);
+  var out='<button class="iconbtn" data-a="back" aria-label="חזרה לתוכנית">'+BACK_ICON+'</button>'+
+    '<h1>'+esc(t.title)+'</h1><p class="sub">'+TYPE[t.type]+'</p>'+
+    '<div class="details">'+esc(t.details||'')+'</div>';
+  if(t.type==='running'){
+    out+='<p>יעד: '+esc(t.targetKm||'')+' ק״מ בקצב '+esc(t.targetPace||'')+' לק״מ</p>';
+  }
+  out+='<h2>דיווח</h2>';
+  if(r){
+    out+='<p>דיווחת שביצעת את האימון.</p>';
+    if(t.type==='running'){
+      out+='<div style="margin:16px 0"><p>הקצב שלך</p><div class="big">'+esc(r.pace)+'</div><p>דקות לכל ק״מ</p></div>'+
+        '<p class="muted">רצת '+esc(r.km)+' ק״מ ב-'+esc(r.time)+' דקות.</p>';
+    }
+    out+='<div style="margin-top:16px"><button data-a="undo" data-id="'+t.id+'">בטל דיווח</button></div>';
+  }else if(t.type==='running'){
+    out+='<label for="km">מרחק שרצת (ק״מ)</label><input id="km" type="text" inputmode="decimal" value="'+esc(t.targetKm||'')+'">'+
+      '<label>כמה זמן לקח לך</label>'+
+      '<div class="picker"><div class="phit"></div><div class="pwrap">'+
+        wheelCol('psec',0,59,0,'pad2')+'<div class="pcolon">:</div>'+wheelCol('pmin',0,59,20,'pad2')+
+      '</div>'+
+      '<div class="punits"><span>שניות</span><span class="pcolon-sp"> </span><span>דקות</span></div></div>'+
+      (view.err?'<div class="err">'+esc(view.err)+'</div>':'')+
+      '<div style="margin-top:20px"><button class="primary block" data-a="done" data-id="'+t.id+'">דווח שביצעתי</button></div>';
+  }else{
+    out+='<button class="primary block" data-a="done" data-id="'+t.id+'">דווח שביצעתי</button>';
+  }
+  return out;
+}
+
+/* ---------- personal area ---------- */
+function fmtDate(ts){
+  var d=new Date(ts);
+  var days=['יום א’','יום ב’','יום ג’','יום ד’','יום ה’','יום ו’','שבת'];
+  var hh=d.getHours(),mm=d.getMinutes();
+  return days[d.getDay()]+', '+(hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm;
+}
+function addGoal(text){var g={id:'g_'+auth.uid+'_'+Date.now(),sid:auth.uid,text:text,done:false};goals.push(g);return g}
+function toggleGoal(id){var g=goals.filter(function(x){return x.id===id})[0];if(g) g.done=!g.done;return g}
+function delGoal(id){goals=goals.filter(function(x){return x.id!==id})}
+function delKshag(id){kshag=kshag.filter(function(k){return k.id!==id})}
+function vHistory(){
+  var mine=Object.keys(reports).filter(function(k){return k.indexOf(auth.uid+'|')===0 && reports[k].at}).map(function(k){
+    return {t:byId(k.split('|')[1]),r:reports[k]};
+  }).filter(function(x){return x.t}).sort(function(a,b){return (b.r.at||0)-(a.r.at||0)});
+  if(!mine.length) return '<p class="muted" style="margin-top:20px">עדיין לא דיווחת על אימונים.</p>';
+  return '<div class="stack" style="margin-top:16px">'+mine.map(function(x){
+    var st=(x.t.type==='running'&&x.r.pace)?('קצב '+esc(x.r.pace)+' לק״מ'):'בוצע';
+    return '<div class="line"><div class="grow"><div style="font-weight:600">'+esc(x.t.title)+'</div>'+
+      '<div class="muted" style="margin-top:2px">'+fmtDate(x.r.at)+'</div></div><span>'+st+'</span></div>';
+  }).join('')+'</div>';
+}
+function vGoals(){
+  var out='<div style="margin-top:16px"><label for="gtxt">יעד חדש</label>'+
+    '<input id="gtxt" type="text" placeholder="למשל: לשפר קצב ריצה ל-5:00">'+
+    (view.err?'<div class="err">'+esc(view.err)+'</div>':'')+
+    '<div style="margin-top:12px"><button class="primary block" data-a="addgoal">הוסף יעד</button></div></div>';
+  var mine=goals.filter(function(g){return g.sid===auth.uid});
+  if(!mine.length){out+='<p class="muted" style="margin-top:20px">עדיין לא הגדרת יעדים.</p>';return out}
+  out+='<div class="stack" style="margin-top:20px">'+mine.slice().reverse().map(function(g){
+    var actions=view.gDelId===g.id
+      ? '<button class="small primary" data-a="gdel" data-id="'+g.id+'">אשר מחיקה</button><button class="small" data-a="gdelno">בטל</button>'
+      : '<button class="small" data-a="gtoggle" data-id="'+g.id+'">'+(g.done?'בטל':'הושג')+'</button>'+
+        '<button class="small" data-a="gdelconfirm" data-id="'+g.id+'">מחק</button>';
+    return '<div class="line"><span class="grow" style="'+(g.done?'text-decoration:line-through;color:var(--muted)':'')+'">'+esc(g.text)+'</span>'+actions+'</div>';
+  }).join('')+'</div>';
+  return out;
+}
+function vKshag(){
+  var out='';
+  if(view.kshagOpen){
+    var now=new Date(),yNow=now.getFullYear();
+    out+='<div style="margin-top:16px">'+
+      '<label>תאריך</label>'+
+      '<div class="picker"><div class="phit"></div><div class="pwrap">'+
+        wheelCol('kdate_day',1,31,now.getDate(),'pad2')+
+        wheelCol('kdate_month',0,11,now.getMonth(),'month',true)+
+        wheelCol('kdate_year',yNow-2,yNow+1,yNow,'plain')+
+      '</div><div class="punits"><span>יום</span><span class="wide">חודש</span><span>שנה</span></div></div>'+
+      '<label>ריצת 3 ק״מ (דק:שנ)</label>'+
+      '<div class="picker"><div class="phit"></div><div class="pwrap">'+
+        wheelCol('krun_sec',0,59,0,'pad2')+'<div class="pcolon">:</div>'+wheelCol('krun_min',0,59,20,'pad2')+
+      '</div><div class="punits"><span>שניות</span><span class="pcolon-sp"> </span><span>דקות</span></div></div>'+
+      '<label>ספרינטים 300 מ׳ X2 (דק:שנ)</label>'+
+      '<div class="picker"><div class="phit"></div><div class="pwrap">'+
+        wheelCol('ksprint_sec',0,59,30,'pad2')+'<div class="pcolon">:</div>'+wheelCol('ksprint_min',0,59,1,'pad2')+
+      '</div><div class="punits"><span>שניות</span><span class="pcolon-sp"> </span><span>דקות</span></div></div>'+
+      '<div class="row"><div>'+
+        '<label>מתח עם 7 ק״ג (חזרות)</label>'+
+        '<div class="picker"><div class="phit"></div><div class="pwrap">'+wheelCol('kpull_n',0,30,0,'plain')+'</div><div class="punits"><span>חזרות</span></div></div>'+
+      '</div><div>'+
+        '<label>מקבילים (חזרות)</label>'+
+        '<div class="picker"><div class="phit"></div><div class="pwrap">'+wheelCol('kdips_n',0,30,0,'plain')+'</div><div class="punits"><span>חזרות</span></div></div>'+
+      '</div></div>'+
+      (view.err?'<div class="err">'+esc(view.err)+'</div>':'')+
+      '<div style="margin-top:12px"><button class="primary block" data-a="addkshag">שמור תוצאה</button></div></div>';
+  }else{
+    out+='<div style="margin-top:16px"><button class="primary block" data-a="kshagopen">הזן בוחן כש״ג חדש</button></div>';
+  }
+  var mine=kshag.filter(function(k){return k.sid===auth.uid});
+  if(!mine.length){out+='<p class="muted" style="margin-top:20px">עדיין אין תוצאות מבחן כש״ג.</p>';return out}
+  out+='<div class="stack" style="margin-top:20px">'+mine.slice().reverse().map(function(k){
+    var actions=view.kDelId===k.id
+      ? '<button class="small primary" data-a="kdel" data-id="'+k.id+'">אשר מחיקה</button><button class="small" data-a="kdelno">בטל</button>'
+      : '<button class="small" data-a="kdelconfirm" data-id="'+k.id+'">מחק</button>';
+    return '<div class="card"><div class="klvl klvl-'+(k.levelClass||'pass')+'">'+esc(k.level||'')+'</div>'+
+      '<div class="top" style="margin-top:6px"><span class="name">'+esc(k.date||'')+'</span></div>'+
+      '<div class="details" style="margin-top:10px">ריצת 3 ק״מ: '+esc(fmt(k.runSec))+'\nספרינטים 300 מ׳ X2: '+esc(fmt(k.sprintSec))+'\nמתח עם 7 ק״ג: '+k.pull+'\nמקבילים: '+k.dips+'</div>'+
+      '<div style="margin-top:10px">'+actions+'</div></div>';
+  }).join('')+'</div>';
+  return out;
+}
+function vPersonal(){
+  var tab=view.pTab||'history';
+  var out='<button class="iconbtn" data-a="pback" aria-label="חזרה לתוכנית">'+BACK_ICON+'</button>'+
+    '<h1>האזור האישי</h1>'+(me?'<p class="sub">'+esc(me.name)+'</p>':'');
+  var seg='<div class="seg"><button data-a="ptab" data-v="history" class="'+(tab==='history'?'on':'')+'">היסטוריה</button>'+
+    '<button data-a="ptab" data-v="goals" class="'+(tab==='goals'?'on':'')+'">יעדים</button>'+
+    '<button data-a="ptab" data-v="kshag" class="'+(tab==='kshag'?'on':'')+'">כש״ג</button></div>';
+  out+='<div style="margin-top:16px">'+seg+'</div>';
+  if(tab==='goals') out+=vGoals();
+  else if(tab==='kshag') out+=vKshag();
+  else out+=vHistory();
+  return out;
+}
+
+/* ---------- coach ---------- */
+function vEditForm(t){
+  var isNew=(t==null);
+  var type=isNew?view.coachType:t.type;
+  var run=type==='running';
+  var d=view.draft;
+  var vTtl=d?d.ttl:(isNew?'':t.title);
+  var vDet=d?d.det:(isNew?'':t.details);
+  var vTkm=d?d.tkm:(isNew?'':(t.targetKm||''));
+  var vTpc=d?d.tpc:(isNew?'':(t.targetPace||''));
+  return '<h2>'+(isNew?'אימון חדש':'עריכת אימון')+'</h2>'+
+    '<label for="ttl">שם האימון</label><input id="ttl" type="text" value="'+esc(vTtl)+'">'+
+    '<label for="det">פרטי האימון</label><textarea id="det">'+esc(vDet)+'</textarea>'+
+    (run?'<div class="row"><div><label for="tkm">יעד מרחק (ק״מ)</label><input id="tkm" type="text" inputmode="decimal" value="'+esc(vTkm)+'"></div>'+
+         '<div><label for="tpc">יעד קצב לק״מ</label><input id="tpc" type="text" inputmode="numeric" placeholder="5:45" value="'+esc(vTpc)+'"></div></div>':'')+
+    (view.err?'<div class="err">'+esc(view.err)+'</div>':'')+
+    '<div class="row" style="margin-top:20px"><button class="primary" data-a="save">שמור אימון</button><button data-a="cancel">בטל</button></div>';
+}
+function vCoach(){
+  var ct=view.coachType;
+  var seg='<div class="seg"><button data-a="ctype" data-v="strength" class="'+(ct==='strength'?'on':'')+'">אימוני כוח</button>'+
+    '<button data-a="ctype" data-v="running" class="'+(ct==='running'?'on':'')+'">אימוני ריצה</button></div>';
+  var out='<h1>בניית אימונים</h1><p class="sub">אימוני '+TYPE[ct]+' לשבוע הנוכחי.</p><div style="margin-top:16px">'+seg+'</div>';
+  if(view.edit==='new') return out+vEditForm(null);
+  if(view.edit){var et=byId(view.edit);if(et) return out+vEditForm(et)}
+  var list=trainings.filter(function(t){return t.type===ct});
+  if(!list.length){
+    out+='<p style="margin-top:24px">אין עדיין אימוני '+TYPE[ct]+'. הוסף את האימון הראשון.</p>';
+  }
+  out+='<div class="stack" style="margin-top:20px">'+list.map(function(t){
+    var c=soldiers.filter(function(s){return rep(s.id,t.id)}).length;
+    var del=view.delId===t.id
+      ? '<button class="small primary" data-a="delok" data-id="'+t.id+'">אשר מחיקה</button><button class="small" data-a="delno">בטל</button>'
+      : '<button class="small" data-a="edit" data-id="'+t.id+'">עריכה</button><button class="small" data-a="del" data-id="'+t.id+'">מחיקה</button>';
+    return '<div class="card"><div class="top"><span class="name">'+esc(t.title)+'</span><span class="st">דיווחו '+c+' מתוך '+soldiers.length+'</span></div>'+
+      '<div class="details" style="margin:12px 0">'+esc(t.details||'')+'</div>'+
+      (t.type==='running'?'<p class="muted" style="margin-bottom:12px">יעד: '+esc(t.targetKm||'')+' ק״מ בקצב '+esc(t.targetPace||'')+'</p>':'')+
+      '<div class="row">'+del+'</div></div>';
+  }).join('')+'</div>';
+  out+='<div style="margin-top:20px"><button class="primary block" data-a="new">הוסף אימון '+TYPE[ct]+'</button></div>';
+  return out;
+}
+
+/* ---------- commander ---------- */
+function vCmd(){
+  if(view.cmdKshag) return vCmdKshag();
+  var n=trainings.length,N=soldiers.length,total=N*n,all=0;
+  soldiers.forEach(function(s){all+=doneCount(s.id)});
+  var out='<h1>דוח שבועי</h1><p class="sub">'+N+' חיילים, '+n+' אימונים בתוכנית.</p>'+
+    '<div class="big" style="margin-top:16px">'+pct(all,total)+'%</div><p>מהאימונים בוצעו</p>'+bar(pct(all,total));
+
+  out+='<h2>לפי אימון</h2>';
+  trainings.forEach(function(t){
+    var rs=soldiers.map(function(s){return rep(s.id,t.id)}).filter(Boolean);
+    var extra='';
+    if(t.type==='running'){
+      var secs=rs.map(function(r){return parsePace(r.pace)}).filter(function(x){return !isNaN(x)});
+      if(secs.length){
+        var avg=secs.reduce(function(a,b){return a+b},0)/secs.length;
+        extra='<p class="muted">קצב ממוצע: '+fmt(avg)+' לק״מ. יעד: '+esc(t.targetPace||'')+'</p>';
+      }
+    }
+    out+='<div style="margin-bottom:16px"><div class="line" style="border:0;padding:0"><span class="name" style="font-weight:700">'+esc(t.title)+'</span><span>'+rs.length+' מתוך '+N+', '+pct(rs.length,N)+'%</span></div>'+bar(pct(rs.length,N))+extra+'</div>';
+  });
+
+  out+='<h2>בוחן כש״ג</h2>';
+  out+='<button class="card" data-a="kshagdetail">'+
+    '<div class="top"><span class="name">כלל המחלקה</span><span class="st">'+kshag.length+' תוצאות</span></div>'+
+    '<div class="tag">ממוצעים, פילוח לפי כיתה ורשימת חיילים</div></button>';
+
+  out+='<h2>לפי כיתה</h2>';
+  SQUADS.forEach(function(q){
+    var m=soldiers.filter(function(s){return s.squad===q});
+    var d=0;m.forEach(function(s){d+=doneCount(s.id)});
+    out+='<div style="margin-bottom:16px"><div class="line" style="border:0;padding:0"><span style="font-weight:700">כיתה '+q+'</span><span>'+m.length+' חיילים, '+pct(d,m.length*n)+'%</span></div>'+bar(pct(d,m.length*n))+'</div>';
+  });
+
+  var none=soldiers.filter(function(s){return doneCount(s.id)===0});
+  out+='<h2>לא ביצעו אף אימון</h2>';
+  out+=none.length?'<p>'+none.map(function(s){return esc(s.name)+' (כיתה '+s.squad+')'}).join(', ')+'</p>':'<p>כל החיילים ביצעו לפחות אימון אחד.</p>';
+
+  var sorted=soldiers.slice().sort(function(a,b){return doneCount(a.id)-doneCount(b.id)});
+  out+='<h2>לפי חייל, מהנמוך לגבוה</h2><div>'+sorted.map(function(s){
+    return '<div class="line"><span class="grow">'+esc(s.name)+'</span><span>כיתה '+s.squad+'</span><span style="min-width:44px;text-align:left">'+doneCount(s.id)+'/'+n+'</span></div>';
+  }).join('')+'</div>';
+  return out;
+}
+
+function vCmdKshag(){
+  var sortMode=view.kshagSort||'latest';
+  var out='<button class="iconbtn" data-a="cmdkshagback" aria-label="חזרה לדוח">'+BACK_ICON+'</button>'+
+    '<h1>בוחן כש״ג</h1><p class="sub">כלל המחלקה</p>';
+
+  var bySoldier={};
+  kshag.forEach(function(k){
+    var cur=bySoldier[k.sid];
+    if(!cur){bySoldier[k.sid]=k;return}
+    if(sortMode==='best'){
+      var rc=KLVL_RANK[k.levelClass]-KLVL_RANK[cur.levelClass];
+      if(rc>0||(rc===0&&k.runSec<cur.runSec)) bySoldier[k.sid]=k;
+    }else{
+      if(k.dateTs>cur.dateTs) bySoldier[k.sid]=k;
+    }
+  });
+  var reps=Object.keys(bySoldier).map(function(sid){return bySoldier[sid]});
+
+  if(!reps.length){
+    out+='<p class="muted" style="margin-top:20px">עדיין לא הוזנו תוצאות בוחן כש״ג.</p>';
+    return out;
+  }
+
+  function avg(arr,key){return arr.length?Math.round(arr.reduce(function(a,x){return a+x[key]},0)/arr.length):0}
+  var passRate=pct(reps.filter(function(r){return r.levelClass!=='fail'}).length,reps.length);
+
+  out+='<div class="big" style="margin-top:16px">'+passRate+'%</div><p>עברו את הבוחן (ממוצע מחלקתי)</p>'+bar(passRate);
+
+  out+='<h2>ממוצעים מחלקתיים</h2>'+
+    '<div class="line"><span class="grow">ריצת 3 ק״מ</span><span>'+fmt(avg(reps,'runSec'))+'</span></div>'+
+    '<div class="line"><span class="grow">ספרינטים 300 מ׳ X2</span><span>'+fmt(avg(reps,'sprintSec'))+'</span></div>'+
+    '<div class="line"><span class="grow">מתח עם 7 ק״ג</span><span>'+avg(reps,'pull')+' חזרות</span></div>'+
+    '<div class="line"><span class="grow">מקבילים</span><span>'+avg(reps,'dips')+' חזרות</span></div>';
+
+  out+='<h2>לפי כיתה</h2>';
+  SQUADS.forEach(function(q){
+    var qr=reps.filter(function(r){return r.squad===q});
+    if(!qr.length){
+      out+='<div style="margin-bottom:16px"><div class="line" style="border:0;padding:0"><span style="font-weight:700">כיתה '+q+'</span><span class="muted">אין נתונים</span></div></div>';
+      return;
+    }
+    var qPassRate=pct(qr.filter(function(r){return r.levelClass!=='fail'}).length,qr.length);
+    out+='<div style="margin-bottom:16px"><div class="line" style="border:0;padding:0"><span style="font-weight:700">כיתה '+q+'</span><span>'+qr.length+' חיילים, '+qPassRate+'% עברו</span></div>'+bar(qPassRate)+
+      '<p class="muted" style="margin-top:6px">ריצה '+fmt(avg(qr,'runSec'))+' · ספרינט '+fmt(avg(qr,'sprintSec'))+' · מתח '+avg(qr,'pull')+' · מקבילים '+avg(qr,'dips')+'</p></div>';
+  });
+
+  var seg='<div class="seg"><button data-a="kshagsort" data-v="latest" class="'+(sortMode==='latest'?'on':'')+'">הבוחן האחרון</button>'+
+    '<button data-a="kshagsort" data-v="best" class="'+(sortMode==='best'?'on':'')+'">הבוחן הכי טוב</button></div>';
+  out+='<h2>לפי חייל</h2><div style="margin-bottom:12px">'+seg+'</div>';
+
+  var sortedReps=reps.slice().sort(function(a,b){
+    if(sortMode==='best'){
+      var rc=KLVL_RANK[b.levelClass]-KLVL_RANK[a.levelClass];
+      return rc!==0?rc:a.runSec-b.runSec;
+    }
+    return b.dateTs-a.dateTs;
+  });
+  out+='<div class="stack">'+sortedReps.map(function(r){
+    var sold=soldiers.filter(function(s){return s.id===r.sid})[0];
+    var nm=sold?sold.name:r.sid;
+    return '<div class="card"><div class="top"><span class="name">'+esc(nm)+'</span><span class="klvl klvl-'+r.levelClass+'" style="font-size:15px">'+esc(r.level)+'</span></div>'+
+      '<p class="muted" style="margin-top:4px">כיתה '+esc(r.squad||'')+' · '+esc(r.date||'')+'</p>'+
+      '<div class="details" style="margin-top:10px">ריצת 3 ק״מ: '+fmt(r.runSec)+'\nספרינטים 300 מ׳ X2: '+fmt(r.sprintSec)+'\nמתח עם 7 ק״ג: '+r.pull+'\nמקבילים: '+r.dips+'</div></div>';
+  }).join('')+'</div>';
+
+  return out;
+}
+
+/* ---------- wheel picker ---------- */
+var PI_H=44;
+function pad2(n){return (n<10?'0':'')+n}
+function fmtByKind(kind,v){
+  if(kind==='month') return HEBREW_MONTHS[v];
+  if(kind==='pad2') return pad2(v);
+  return String(v);
+}
+function wheelCol(id,min,max,def,kind,wide){
+  return '<div class="pcol'+(wide?' wide':'')+'" id="'+id+'" data-min="'+min+'" data-max="'+max+'" data-default="'+def+'" data-kind="'+(kind||'plain')+'"></div>';
+}
+function fillWheel(el,min,max,sel,kind){
+  var h='';
+  for(var v=min;v<=max;v++){h+='<div class="pi'+(kind==='month'?' label':'')+(v===sel?' sel':'')+'" data-v="'+v+'">'+fmtByKind(kind,v)+'</div>'}
+  el.innerHTML=h;
+  el.scrollTop=(sel-min)*PI_H;
+}
+function markSel(el,idx){
+  for(var i=0;i<el.children.length;i++) el.children[i].classList.toggle('sel',i===idx);
+}
+function wireWheel(el,onChange){
+  var t=null;
+  el.addEventListener('scroll',function(){
+    if(t) clearTimeout(t);
+    t=setTimeout(function(){
+      var idx=Math.round(el.scrollTop/PI_H);
+      idx=Math.max(0,Math.min(el.children.length-1,idx));
+      var target=idx*PI_H;
+      if(Math.abs(el.scrollTop-target)>1) el.scrollTo({top:target,behavior:'smooth'});
+      markSel(el,idx);
+      onChange(parseInt(el.children[idx].getAttribute('data-v'),10));
+    },120);
+  },{passive:true});
+}
+function initWheels(){
+  var cols=document.querySelectorAll('.pcol');
+  for(var i=0;i<cols.length;i++){
+    (function(el){
+      var id=el.id;
+      var min=parseInt(el.getAttribute('data-min'),10);
+      var max=parseInt(el.getAttribute('data-max'),10);
+      var kind=el.getAttribute('data-kind')||'plain';
+      var def=parseInt(el.getAttribute('data-default'),10);
+      if(view.wheelVals[id]==null) view.wheelVals[id]=def;
+      fillWheel(el,min,max,view.wheelVals[id],kind);
+      wireWheel(el,function(v){view.wheelVals[id]=v});
+    })(cols[i]);
+  }
+}
+
+/* ---------- render ---------- */
+var app=document.getElementById('app'),navEl=document.getElementById('nav'),navbarEl=document.getElementById('navbar'),wrapEl=document.getElementById('wrap');
+function render(){
+  if(view.role!=='soldier' && (!me || !hasPerm(me.id,view.role))) view.role='soldier';
+  var h=view.permAdmin?vPermAdmin():(view.role==='soldier'?vSoldier():view.role==='coach'?vCoach():vCmd());
+  app.innerHTML=h;
+  var roles=[['soldier','חייל']];
+  if(me && hasPerm(me.id,'coach')) roles.push(['coach','אחראי כושר']);
+  if(me && hasPerm(me.id,'cmd')) roles.push(['cmd','מפקד']);
+  if(roles.length<2){
+    navbarEl.style.display='none';
+    wrapEl.classList.add('no-nav');
+  }else{
+    navbarEl.style.display='';
+    wrapEl.classList.remove('no-nav');
+    navEl.innerHTML=roles.map(function(r){
+      return '<button data-a="role" data-v="'+r[0]+'" class="'+(!view.permAdmin&&view.role===r[0]?'on':'')+'">'+r[1]+'</button>';
+    }).join('');
+  }
+  initWheels();
+}
+function vPermAdmin(){
+  var out='<button class="iconbtn" data-a="permback" aria-label="חזרה">'+BACK_ICON+'</button>'+
+    '<h1>ניהול הרשאות</h1>'+
+    '<p class="sub">סמן מי מהחיילים הוא מפקד ו/או אחראי כושר. רק להם תופיע גישה לטאבים המתאימים.</p>';
+  if(!soldiers.length){
+    out+='<p style="margin-top:24px">עדיין אין חיילים רשומים.</p>';
+    return out;
+  }
+  out+='<div class="stack" style="margin-top:20px">'+soldiers.map(function(s){
+    var isMe=s.id===auth.uid;
+    return '<div class="line permrow"><span class="grow">'+esc(s.name)+(isMe?' (אני)':'')+' <span class="muted" style="font-size:12px">כיתה '+esc(s.squad)+'</span></span>'+
+      '<span class="permbtns">'+
+      '<button class="small'+(hasPerm(s.id,'cmd')?' primary':'')+'" data-a="permtoggle" data-v="cmd" data-id="'+s.id+'">מפקד</button>'+
+      '<button class="small'+(hasPerm(s.id,'coach')?' primary':'')+'" data-a="permtoggle" data-v="coach" data-id="'+s.id+'">אחראי כושר</button>'+
+      '</span></div>';
+  }).join('')+'</div>';
+  return out;
+}
+function top(){window.scrollTo(0,0)}
+function val(id){var el=document.getElementById(id);return el?el.value:''}
+
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-a]');
+  if(!el) return;
+  var a=el.getAttribute('data-a'),v=el.getAttribute('data-v'),id=el.getAttribute('data-id');
+  view.err='';
+  if(a==='role'){
+    if(v!=='soldier' && (!me || !hasPerm(me.id,v))){render();return}
+    view.role=v;view.tid=null;view.edit=null;view.delId=null;view.cmdKshag=false;view.permAdmin=false;top();
+  }
+  else if(a==='permopen'){view.permAdmin=true;top()}
+  else if(a==='permback'){view.permAdmin=false;top()}
+  else if(a==='permtoggle'){
+    var cur=hasPerm(id,v);
+    setPerm(id,v,!cur);
+    fsSet('permissions',id,permissions[id]);
+    if(me && id===me.id && cur && view.role===v) view.role='soldier';
+  }
+  else if(a==='sq'){view.nm=val('nm');view.sq=v}
+  else if(a==='start'){
+    var nm=val('nm').trim();view.nm=nm;
+    if(!nm){view.err='כתוב את השם המלא שלך.'}
+    else if(!view.sq){view.err='בחר כיתה.'}
+    else{me={id:auth.uid,name:nm,squad:view.sq};soldiers.push(me);fsSet('soldiers',auth.uid,{name:nm,squad:view.sq});top()}
+  }
+  else if(a==='open'){view.tid=id;top()}
+  else if(a==='back'){view.tid=null;top()}
+  else if(a==='done'){
+    var t=byId(id);
+    if(t.type==='running'){
+      var km=val('km').trim().replace(',','.');
+      var kmn=parseFloat(km);
+      var tsec=(view.wheelVals.pmin||0)*60+(view.wheelVals.psec||0);
+      if(!(kmn>0)){view.err='כתוב את המרחק שרצת בק״מ.'}
+      else if(tsec<=0){view.err='גלול ובחר כמה זמן לקח לך.'}
+      else if(tsec/kmn<150||tsec/kmn>900){view.err='המרחק והזמן לא מסתדרים. בדוק אותם ונסה שוב.'}
+      else{
+        var rr={km:km,time:fmt(tsec),pace:fmt(tsec/kmn),at:Date.now()};
+        reports[auth.uid+'|'+id]=rr;
+        fsSet('reports',auth.uid+'_'+id,{sid:auth.uid,tid:id,km:rr.km,time:rr.time,pace:rr.pace,at:rr.at});
+        view.tid=null;delete view.wheelVals.pmin;delete view.wheelVals.psec;
+      }
+    }else{
+      var rr2={at:Date.now()};
+      reports[auth.uid+'|'+id]=rr2;
+      fsSet('reports',auth.uid+'_'+id,{sid:auth.uid,tid:id,at:rr2.at});
+      view.tid=null;
+    }
+  }
+  else if(a==='undo'){delete reports[auth.uid+'|'+id];fsDel('reports',auth.uid+'_'+id)}
+  else if(a==='openpersonal'){view.personal=true;view.pTab='history';top()}
+  else if(a==='pback'){view.personal=false;top()}
+  else if(a==='ptab'){view.pTab=v}
+  else if(a==='addgoal'){
+    var gt=val('gtxt').trim();
+    if(!gt){view.err='כתוב את היעד שלך.'}
+    else{var ng=addGoal(gt);fsSet('goals',ng.id,{sid:ng.sid,text:ng.text,done:ng.done})}
+  }
+  else if(a==='gtoggle'){var tg=toggleGoal(id);if(tg)fsSet('goals',tg.id,{sid:tg.sid,text:tg.text,done:tg.done})}
+  else if(a==='gdelconfirm'){view.gDelId=id}
+  else if(a==='gdelno'){view.gDelId=null}
+  else if(a==='gdel'){delGoal(id);view.gDelId=null;fsDel('goals',id)}
+  else if(a==='addkshag'){
+    var wv=view.wheelVals;
+    var kDay=wv.kdate_day,kMonth=wv.kdate_month,kYear=wv.kdate_year;
+    var runSec=(wv.krun_min||0)*60+(wv.krun_sec||0);
+    var sprintSec=(wv.ksprint_min||0)*60+(wv.ksprint_sec||0);
+    var pull=wv.kpull_n,dips=wv.kdips_n;
+    var g=gradeKshag(pull,dips,sprintSec,runSec);
+    var kid='k_'+auth.uid+'_'+Date.now();
+    var krec={id:kid,sid:auth.uid,squad:me?me.squad:(view.sq||''),
+      date:kshagDateStr(kDay,kMonth,kYear),dateTs:new Date(kYear,kMonth,kDay).getTime(),
+      runSec:runSec,sprintSec:sprintSec,pull:pull,dips:dips,
+      level:g.level,levelClass:g.levelClass};
+    kshag.push(krec);
+    fsSet('kshag',kid,{sid:krec.sid,squad:krec.squad,date:krec.date,dateTs:krec.dateTs,runSec:krec.runSec,sprintSec:krec.sprintSec,pull:krec.pull,dips:krec.dips,level:krec.level,levelClass:krec.levelClass});
+    ['kdate_day','kdate_month','kdate_year','krun_sec','krun_min','ksprint_sec','ksprint_min','kpull_n','kdips_n'].forEach(function(k){delete wv[k]});
+    view.kshagOpen=false;
+  }
+  else if(a==='kshagopen'){view.kshagOpen=true}
+  else if(a==='kdelconfirm'){view.kDelId=id}
+  else if(a==='kdelno'){view.kDelId=null}
+  else if(a==='kdel'){delKshag(id);view.kDelId=null;fsDel('kshag',id)}
+  else if(a==='kshagdetail'){view.cmdKshag=true;top()}
+  else if(a==='cmdkshagback'){view.cmdKshag=false;top()}
+  else if(a==='kshagsort'){view.kshagSort=v}
+  else if(a==='ctype'){view.coachType=v;view.edit=null;view.delId=null;view.draft=null}
+  else if(a==='new'){view.edit='new';view.draft=null}
+  else if(a==='edit'){view.edit=id;view.draft=null}
+  else if(a==='cancel'){view.edit=null;view.draft=null}
+  else if(a==='del'){view.delId=id}
+  else if(a==='delno'){view.delId=null}
+  else if(a==='delok'){
+    trainings=trainings.filter(function(t){return t.id!==id});
+    view.delId=null;
+    fsDel('trainings',id);
+  }
+  else if(a==='save'){
+    view.draft={ttl:val('ttl'),det:val('det'),tkm:val('tkm'),tpc:val('tpc')};
+    var ttl=val('ttl').trim(),det=val('det').trim();
+    if(!ttl){view.err='כתוב שם לאימון.'}
+    else{
+      var tp=view.edit==='new'?view.coachType:byId(view.edit).type;
+      var obj={title:ttl,details:det};
+      if(tp==='running'){
+        var tk=val('tkm').trim(),tpc=val('tpc').trim();
+        if(tpc&&isNaN(parsePace(tpc))){view.err='כתוב את היעד בפורמט דקות:שניות, למשל 5:45.';render();return}
+        obj.targetKm=tk;obj.targetPace=tpc;
+      }
+      var savedId;
+      if(view.edit==='new'){obj.id='t'+(nextId++);obj.type=tp;trainings.push(obj);savedId=obj.id}
+      else{var ex=byId(view.edit);for(var k in obj)ex[k]=obj[k];savedId=view.edit}
+      var full=byId(savedId);
+      fsSet('trainings',savedId,{type:full.type,title:full.title,details:full.details,targetKm:full.targetKm||null,targetPace:full.targetPace||null});
+      view.edit=null;view.draft=null;
+    }
+  }
+  render();
+});
+
+function finishInit(so,rp,gl,ks,pm){
+  soldiers=so.map(function(d){return {id:d.id,name:d.name,squad:d.squad}});
+  reports={};
+  rp.forEach(function(d){reports[d.sid+'|'+d.tid]={km:d.km,time:d.time,pace:d.pace,at:d.at}});
+  goals=gl.map(function(d){return {id:d.id,sid:d.sid,text:d.text,done:!!d.done}});
+  kshag=ks.map(function(d){return {id:d.id,sid:d.sid,squad:d.squad,date:d.date,dateTs:d.dateTs,runSec:d.runSec,sprintSec:d.sprintSec,pull:d.pull,dips:d.dips,level:d.level,levelClass:d.levelClass}});
+  permissions={};
+  pm.forEach(function(d){permissions[d.id]={cmd:!!d.cmd,coach:!!d.coach}});
+  me=soldiers.filter(function(s){return s.id===auth.uid})[0]||null;
+  markSync(true);
+  render();
+}
+function init(){
+  loadAuth();
+  ensureAuth().then(function(){
+    return fsList('trainings');
+  }).then(function(tr){
+    if(tr.length){
+      trainings=tr.map(function(d){return {id:d.id,type:d.type,title:d.title,details:d.details,targetKm:d.targetKm,targetPace:d.targetPace}});
+      var maxN=0;
+      trainings.forEach(function(t){var m=/^t(\d+)$/.exec(t.id);if(m) maxN=Math.max(maxN,parseInt(m[1],10))});
+      nextId=maxN+1;
+      return;
+    }
+    return Promise.all(trainings.map(function(t){
+      return fsSet('trainings',t.id,{type:t.type,title:t.title,details:t.details,targetKm:t.targetKm||null,targetPace:t.targetPace||null});
+    }));
+  }).then(function(){
+    return Promise.all([fsList('soldiers'),fsList('reports'),fsList('goals'),fsList('kshag'),fsList('permissions')]);
+  }).then(function(res){
+    finishInit(res[0],res[1],res[2],res[3],res[4]);
+  }).catch(function(e){
+    markSync(false);
+    var app=document.getElementById('app');
+    if(app) app.innerHTML='<p class="err">לא הצלחנו להתחבר לשרת. בדוק את החיבור לאינטרנט ורענן את הדף.</p>';
+  });
+}
+init();
+})();
+</script>
+</body>
+</html>
