@@ -156,7 +156,10 @@ function saveAuth(){try{localStorage.setItem(LS_KEY,JSON.stringify(auth))}catch(
 function loadAuth(){try{var s=localStorage.getItem(LS_KEY);if(s){var a=JSON.parse(s);if(a&&a.uid&&a.refreshToken){auth=a;return true}}}catch(e){}return false}
 function signInAnon(){
   return fetch(AUTH_SIGNUP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({returnSecureToken:true})})
-    .then(function(r){if(!r.ok)throw new Error('auth-signup-failed');return r.json()})
+    .then(function(r){
+      if(!r.ok) return r.text().then(function(t){throw new Error('auth-signup-failed ['+r.status+']: '+t)});
+      return r.json();
+    })
     .then(function(d){
       auth={uid:d.localId,idToken:d.idToken,refreshToken:d.refreshToken,expAt:Date.now()+(parseInt(d.expiresIn,10)||3600)*1000-60000};
       saveAuth();
@@ -165,7 +168,10 @@ function signInAnon(){
 function refreshAuth(){
   var body='grant_type=refresh_token&refresh_token='+encodeURIComponent(auth.refreshToken);
   return fetch(AUTH_REFRESH,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body})
-    .then(function(r){if(!r.ok)throw new Error('auth-refresh-failed');return r.json()})
+    .then(function(r){
+      if(!r.ok) return r.text().then(function(t){throw new Error('auth-refresh-failed ['+r.status+']: '+t)});
+      return r.json();
+    })
     .then(function(d){
       auth.uid=d.user_id;auth.idToken=d.id_token;auth.refreshToken=d.refresh_token;
       auth.expAt=Date.now()+(parseInt(d.expires_in,10)||3600)*1000-60000;
@@ -214,7 +220,10 @@ function markSync(ok){
 function fsList(col){
   return ensureAuth().then(function(){
     return fetch(FS_BASE+col+'?pageSize=1000',{headers:{'Authorization':'Bearer '+auth.idToken}});
-  }).then(function(r){if(!r.ok)throw new Error('list-failed');return r.json()})
+  }).then(function(r){
+      if(!r.ok) return r.text().then(function(t){throw new Error('list-failed ['+r.status+']: '+t)});
+      return r.json();
+    })
     .then(function(d){markSync(true);return (d.documents||[]).map(fsDecDoc)})
     .catch(function(e){markSync(false);throw e});
 }
@@ -852,7 +861,9 @@ function init(){
   }).catch(function(e){
     markSync(false);
     var app=document.getElementById('app');
-    if(app) app.innerHTML='<p class="err">לא הצלחנו להתחבר לשרת. בדוק את החיבור לאינטרנט ורענן את הדף.</p>';
+    var detail=(e&&e.message)?esc(e.message):'שגיאה לא ידועה';
+    if(app) app.innerHTML='<p class="err">לא הצלחנו להתחבר לשרת. בדוק את החיבור לאינטרנט ורענן את הדף.</p>'+
+      '<p class="muted" style="margin-top:16px;word-break:break-all;direction:ltr;text-align:left">פרטים טכניים (לשלוח לקלוד): '+detail+'</p>';
   });
 }
 init();
